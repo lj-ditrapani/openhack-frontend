@@ -1,0 +1,9 @@
+{
+  "name": "openhack-forntend",
+  "dependencies": {},
+  "author": "Lyall Jonathan Di Trapani",
+  "devDependencies": {
+    "jsdom": "^11.2.0",
+    "source-map-support": "^0.4.17"
+  }
+}
