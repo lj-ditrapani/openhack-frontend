@@ -94,8 +94,13 @@ object App {
   }
 }
 
-final case class Endpoints(minecraft: String, rcon: String)
+final case class Endpoints(minecraft: String, rcon: String) {
+  override def toString(): String = s"minecraft: $minecraft | rcon: $rcon"
+}
+
 final case class Server(name: String, endpoints: Endpoints) {
+  override def toString(): String = s"name: $name | $endpoints"
+
   def delete(): Unit = {
     HttpRequest()
       .withHost(App.host)
