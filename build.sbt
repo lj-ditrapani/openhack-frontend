@@ -23,6 +23,8 @@ scalacOptions ++= Seq(
 // This is an application with a main method
 scalaJSUseMainModuleInitializer := true
 
+val circeVersion = "0.9.3"
+
 libraryDependencies ++= Seq(
   "be.doeraene" %%% "scalajs-jquery" % "0.9.3",
   "fr.hmil" %%% "roshttp" % "2.1.0",
@@ -31,7 +33,11 @@ libraryDependencies ++= Seq(
   // test
   "org.mockito" % "mockito-core" % "2.18.3" % "test",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test"
-)
+) ++ Seq(
+  "io.circe" %%% "circe-core",
+  "io.circe" %%% "circe-generic",
+  "io.circe" %%% "circe-parser"
+).map(_ % circeVersion)
 
 wartremoverWarnings ++= Warts.allBut(
   Wart.Equals,
@@ -42,4 +48,6 @@ wartremoverWarnings ++= Warts.allBut(
 skip in packageJSDependencies := false
 jsDependencies += "org.webjars" % "jquery" % "3.2.1" / "3.2.1/jquery.js"
 jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv()
+
 scalafmtVersion in ThisBuild := "1.5.1"
+scalafmtOnCompile in Compile := true
