@@ -102,11 +102,15 @@ final case class Server(name: String, endpoints: Endpoints) {
   override def toString(): String = s"name: $name | $endpoints"
 
   def delete(): Unit = {
+    val path = {
+      val ip = this.endpoints.minecraft.split(":")(0).replace(".", "-")
+      s"/${this.name}-$ip"
+    }
     HttpRequest()
       .withHost(App.host)
       .withPort(App.port)
       .withMethod(DELETE)
-      .withPath("/" + this.endpoints.minecraft.split(":")(0).replace(".", "-"))
+      .withPath(path)
       .send()
       .onComplete({
         case res: Success[SimpleHttpResponse] => println(s"delete $this returns ${res.get.body}")
