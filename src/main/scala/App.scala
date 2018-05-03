@@ -103,8 +103,7 @@ final case class Server(name: String, endpoints: Endpoints) {
 
   def delete(): Unit = {
     val path = {
-      val ip = this.endpoints.minecraft.split(":")(0).replace(".", "-")
-      s"/${this.name}-$ip"
+      s"/${this.name}"
     }
     HttpRequest()
       .withHost(App.host)
