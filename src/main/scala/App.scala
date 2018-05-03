@@ -6,55 +6,36 @@ import fr.hmil.roshttp.response.SimpleHttpResponse
 import monix.execution.Scheduler.Implicits.global
 import org.scalajs.jquery.jQuery
 import scala.util.{Failure, Success}
+import scalatags.JsDom.TypedTag
+import org.scalajs.dom.html.Div
 
 import org.scalajs.dom
 import dom.document
 
 object App {
-  private val host = document.location.host.split(":")(0)
-  private val port = document.location.host.split(":")(1).toInt
-
-  def test(): Unit = {
-
-    val s = """
-  [
-  {
-    "name": "tenant1",
-    "endpoints": {
-      "minecraft": "128.124.90.15:25565",
-      "rcon": "128.124.90.15:25575"
-    }
-  },
-  {
-    "name": "tenant2",
-    "endpoints": {
-      "minecraft": "128.194.90.16:25565",
-      "rcon": "128.194.90.16:25575"
-    }
-  }
-  ]
-  """
-    val x = Jsoner.listStringToJson(s)
-    println(x)
-  }
-
-  test()
+  val host = document.location.host.split(":")(0)
+  val port = document.location.host.split(":")(1).toInt
 
   def main(args: Array[String]): Unit = {
-    println("Hello world!")
     ui()
+    getList()
   }
 
   def ui(): Unit = {
     import scalatags.JsDom.all._
     val d =
       div(
-        div(button(onclick := { () =>
-          getList()
-        })("REFRESH"), button(onclick := { () =>
-          add()
-        })("ADD")),
-        div(id := "list")("hello world!")
+        div(
+          button(onclick := { () =>
+            getList()
+          })("REFRESH"),
+          button(onclick := { () =>
+            add()
+          })("ADD")
+        ),
+        div(
+          id := "list"
+        )
       )
     jQuery("body").append(d.render)
     (): Unit
@@ -88,8 +69,9 @@ object App {
           val string = res.get.body
           Jsoner.listStringToJson(string) match {
             case Right(servers) =>
-              // servers.map(serverToHtml)
               println(s"/list returned servers $servers")
+              jQuery("#list").html("")
+              jQuery("#list").append(divWrap(servers.map(serverToHtml)).render)
             case Left(error) => println(s"/list can't be parsed $error")
           }
           println(s"/list returns ${string}")
@@ -99,11 +81,34 @@ object App {
     (): Unit
   }
 
-  // def serverToHtml(): ??? = { }
+  def divWrap(divs: List[TypedTag[Div]]): TypedTag[Div] = {
+    import scalatags.JsDom.all._
+    div(divs)
+  }
+
+  def serverToHtml(server: Server): TypedTag[Div] = {
+    import scalatags.JsDom.all._
+    div(server.toString, button(onclick := { () =>
+      server.delete()
+    })("DELETE"))
+  }
 }
 
 final case class Endpoints(minecraft: String, rcon: String)
-final case class Server(name: String, endpoints: Endpoints)
+final case class Server(name: String, endpoints: Endpoints) {
+  def delete(): Unit = {
+    HttpRequest()
+      .withHost(App.host)
+      .withPort(App.port)
+      .withMethod(DELETE)
+      .withPath("/" + this.endpoints.minecraft.split(":")(0).replace(".", "-"))
+      .send()
+      .onComplete({
+        case res: Success[SimpleHttpResponse] => println(s"delete $this returns ${res.get.body}")
+        case e: Failure[SimpleHttpResponse] => println(s"Error, delete $this failed with $e")
+      })
+  }
+}
 
 @SuppressWarnings(Array("org.wartremover.warts.PublicInference"))
 object Jsoner {
